@@ -1,0 +1,148 @@
+import tkinter
+import json
+import re
+import os
+from tkinter import messagebox
+#-- liaberies
+
+def registeraccount():
+    username = username_input.get()
+    password = password_input.get()  # --- these to grab the impformation from the functions
+
+    verficationpassword =False
+    verficationusername = False
+
+    if len(password) < 6:
+        pass
+    else :
+        verficationpassword = True
+
+    if len(username) < 6:
+        verficationusername = False
+    else:
+        verficationusername = True   
+
+    if verficationpassword == True and verficationusername == True: # check that both the username and password are valid
+        if os.path.exists("user.json"):
+           with open("user.json","r") as file:
+               user = json.load(file)
+
+        else:
+          user = {}
+        if username in user:
+         messagebox.showinfo(title="password error", message="this username already exist. \npleaes try another name")
+         return
+        
+        user[username] = password
+        with open("user.json","w") as file: # wrties towarsds the json file
+            json.dump(user,file)
+            messagebox.showinfo(title="LOGIN UPDATE", message="REGISTRATION WAS SUCCESSFULL")
+
+    else:
+        messagebox.showinfo(title="password error", message="password or username may to short. \n please ensure it over 6 characters each")
+    
+def loginAccount():
+    username = username_input.get()
+    password = password_input.get()  # --- these to grab the impformation from the functions
+
+    PATH = "user.json"
+     
+    if os.path.isfile(PATH) and os.access(PATH, os.R_OK):  # checks if user file even exist
+        # checks if file exists
+        print ("File exists and is readable")
+        with open(PATH,"r") as file:
+            user = json.load(file)
+            if username in user:
+                if user[username] == password: # checks if the username connected to the password matchess
+                 messagebox.showinfo(title="LOGIN UPDATE", message="log in was a correct!") # user feedback
+                 main_page(username)  
+    else:
+        Warning ("Either file is missing or is not readable")
+
+def main_page (username):
+    window.withdraw()
+    main_window = tkinter.Toplevel()
+
+
+    frame = tkinter.Frame(main_window,bg="#333333") #jb made me move ts og line somthing good luck futur ten 
+    main_window.title("HOME")
+    main_window.geometry("420x840")
+    main_window.configure(bg="#333333")
+    #-- creates home page and backround colour 
+    welcomeMessage = f"welcome, {username}"
+    welcomeMessageLabel = tkinter.Label(main_window, text = welcomeMessage,fg= "white", bg = "#7C7C7C",font=("Arial",16),pady=15)
+    welcomeMessageLabel.pack(pady = 20)
+    #-- user greetings
+    recomedation_button =tkinter.Button(frame,text="fucntion in progress",bg="#757474",font=("Arial",30))
+    wardrope_button =tkinter.Button(frame,text="view wardrope",bg="#757474",font=("Arial",30))
+    oufitbuilder_button =tkinter.Button(frame,text="build an outfit",bg="#757474",font=("Arial",30),command=lambd a: buildoutfit(main_window))
+    outfitplaner_button =tkinter.Button(frame,text="outfit planer / view plan",bg="#757474",font=("Arial",30))
+    exitbutton =tkinter.Button(frame,text="close app",bg="#F60707",font=("Arial",30),command=closeprogram)
+    #--- butons for the home page
+    frame.pack()
+    recomedation_button.grid(row=0,column=0,columnspan=3,rowspan=2,pady=15)
+    wardrope_button.grid(row=3,column=0,columnspan=3,rowspan=2,pady=15)
+    oufitbuilder_button.grid(row=6,column=0,columnspan=3,rowspan=2,pady=15)
+    outfitplaner_button.grid(row=9,column=0,columnspan=3,rowspan=2,pady=15)
+    exitbutton.grid(row= 12, column= 0 ,columnspan= 3, rowspan=2,pady = 15  )
+def closeprogram():
+    confirmation = messagebox.askokcancel(title="close app",message="are you sure you want to close this program?")
+    confirmation
+    if confirmation == True:
+        window.destroy()
+    else:
+        print(f"{username_input} has remained in the program.")
+def buildoutfit(mainwidnow):
+   
+    mainwidnow.withdraw()
+    buildingpage = tkinter.Toplevel()
+    buildingpage.title("outfit picker")
+    buildingpage.geometry("420x840")
+    buildingpage.configure(bg="#333333")
+
+    frame = tkinter.Frame(buildingpage, bg="#333333")
+
+
+    outfitBuilderframe = tkinter.LabelFrame(frame,text= "user infromation ")
+    outfitBuilderframe.grid(row=0, column= 0 )
+    the_username_label = tkinter.Label(outfitBuilderframe,text="user text label ") 
+    the_username_label.grid(row= 0,  colmmn = 0 )
+
+    frame.pack(fill="both", expand=True)
+
+    title = tkinter.Label(frame, text="Build Outfit", fg="white", bg="#333333", font=("Arial", 24))
+    title.pack(pady=20)
+
+    
+    
+#-- functions
+window = tkinter.Tk()
+window.title("login form")
+window.geometry("420x840")
+backround = window.configure(bg="#333333")  
+                    
+frame = tkinter.Frame(bg="#333333")
+#---- 
+Login_label = tkinter.Label(frame, text ="Login", bg="#333333", fg="#FFFFFF" ,font=("Arial",32))
+username_label = tkinter.Label(frame, text="username", bg="#333333", fg="#FFFFFF" ,font=("Arial",16))
+username_input = tkinter.Entry(frame, bg="#333333", fg="#FFFFFF")
+password_label = tkinter.Label(frame,text="pasword", bg="#333333", fg="#FFFFFF" ,font=("Arial",16))
+password_input =tkinter.Entry(frame,show="*", bg="#333333", fg="#FFFFFF")
+login_button = tkinter.button = tkinter.Button(frame, text="login", bg="#890CE8", fg="#FFFFFF", command=loginAccount)
+Register_button = tkinter.button = tkinter.Button(frame, text="register", bg="#890CE8", fg="#FFFFFF",command=registeraccount)
+
+#---- ui and for login creation
+
+Login_label.grid(row= 0, column= 0 , columnspan= 2,sticky="news", pady= 40)
+username_label.grid(row=1, column=0)
+username_input.grid(row=1, column=1)
+password_label.grid(row=2, column=0)
+password_input.grid(row=2, column=1)
+login_button.grid(row=3, column=0, columnspan=2,pady=30)
+Register_button.grid(row=4, column=0, columnspan=2) 
+frame.pack()
+#--- postioning for ui
+command = registeraccount
+
+window.mainloop()
+ 

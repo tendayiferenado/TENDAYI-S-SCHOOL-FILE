@@ -1,0 +1,196 @@
+import customtkinter as ctk
+import tkinter as tk
+from tkinter import filedialog, messagebox
+from PIL import Image, ImageTk
+import json, os
+
+# -----------------------------
+# Config
+# -----------------------------
+USERS_FILE = "users.json"
+WARDROBE_FILE = "wardrobe.json"
+
+# -----------------------------
+# Helpers
+# -----------------------------
+def load_json(path):
+    if os.path.exists(path):
+        with open(path, "r") as f:
+            return json.load(f)
+    return {}
+
+def save_json(path, data):
+    with open(path, "w") as f:
+        json.dump(data, f, indent=4)
+
+# -----------------------------
+# Login / Register Window
+# -----------------------------
+class LoginWindow(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        self.title("Wardrobe Login")
+        self.geometry("400x400")
+        ctk.set_appearance_mode("system")
+        ctk.set_default_color_theme("blue")
+
+        self.users = load_json(USERS_FILE)
+
+        self.label = ctk.CTkLabel(self, text="👕 Smart Wardrobe Login", font=ctk.CTkFont(size=22, weight="bold"))
+        self.label.pack(pady=30)
+
+        self.username = ctk.CTkEntry(self, placeholder_text="Username")
+        self.username.pack(pady=10)
+
+        self.password = ctk.CTkEntry(self, placeholder_text="Password", show="•")
+        self.password.pack(pady=10)
+
+        self.login_btn = ctk.CTkButton(self, text="Login", command=self.login)
+        self.login_btn.pack(pady=10)
+
+        self.register_btn = ctk.CTkButton(self, text="Register", fg_color="gray", command=self.register)
+        self.register_btn.pack(pady=10)
+
+        self.theme_btn = ctk.CTkButton(self, text="Toggle Theme", command=self.toggle_theme)
+        self.theme_btn.pack(pady=20)
+
+    def login(self):
+        user = self.username.get().strip() 
+        pw = self.password.get().strip()
+        if not user or not pw:
+            messagebox.showwarning("Error", "Enter username and password.")
+            return
+        if user in self.users and self.users[user] == pw:
+            self.destroy()
+            WardrobeApp(user)
+        else:
+            messagebox.showerror("Login Failed", "Invalid username or password.")
+
+    def register(self):
+        user = self.username.get().strip()
+        pw = self.password.get().strip()
+        if not user or not pw:
+            messagebox.showwarning("Error", "Enter username and password.")
+            return
+        if user in self.users:
+            messagebox.showinfo("Exists", "User already exists.")
+        else:
+            self.users[user] = pw
+            save_json(USERS_FILE, self.users)
+            messagebox.showinfo("Success", "Account created! You can now log in.")
+
+    def toggle_theme(self):
+        ctk.set_appearance_mode("dark" if ctk.get_appearance_mode() == "Light" else "light")
+
+# -----------------------------
+# Wardrobe App Window
+# -----------------------------
+class WardrobeApp(ctk.CTk):
+    def __init__(self, username):
+        super().__init__()
+        self.username = username
+        self.title(f"Wardrobe - {username}")
+        self.geometry("1000x600")
+
+        # Load wardrobe data
+        self.wardrobe = load_json(WARDROBE_FILE).get(username, [])
+
+        # Sidebar
+        self.sidebar = ctk.CTkFrame(self, width=200)
+        self.sidebar.pack(side="left", fill="y")
+
+        ctk.CTkLabel(self.sidebar, text=f"👋 Welcome, {username}", font=ctk.CTkFont(size=18, weight="bold")).pack(pady=20)
+        ctk.CTkButton(self.sidebar, text="Add Item", command=self.add_item).pack(pady=5)
+        ctk.CTkButton(self.sidebar, text="Delete Item", command=self.delete_item).pack(pady=5)
+        ctk.CTkButton(self.sidebar, text="Toggle Theme", command=self.toggle_theme).pack(pady=5)
+        ctk.CTkButton(self.sidebar, text="Logout", fg_color="gray", command=self.logout).pack(pady=5)
+
+        # Main content
+        self.main_frame = ctk.CTkFrame(self)
+        self.main_frame.pack(side="right", expand=True, fill="both", padx=20, pady=20)
+
+        # Search bar
+        self.search_entry = ctk.CTkEntry(self.main_frame, placeholder_text="Search wardrobe...")
+        self.search_entry.pack(pady=10)
+        self.search_entry.bind("<KeyRelease>", lambda e: self.refresh_list())
+
+        # Wardrobe list
+        self.listbox = tk.Listbox(self.main_frame, font=("Arial", 14), height=20)
+        self.listbox.pack(fill="both", expand=True, pady=10)
+        self.listbox.bind("<<ListboxSelect>>", self.show_preview)
+
+        # Image preview
+        self.preview_label = ctk.CTkLabel(self.main_frame, text="🧥 No Image Selected", font=ctk.CTkFont(size=16))
+        self.preview_label.pack(pady=10)
+
+        self.refresh_list()
+        self.mainloop()
+
+    # ------------- Functions -------------
+    def refresh_list(self):
+        search = self.search_entry.get().lower()
+        self.listbox.delete(0, tk.END)
+        for item in self.wardrobe:
+            if search in item["name"].lower():
+                self.listbox.insert(tk.END, f"{item['category']} - {item['name']}")
+
+    def add_item(self):
+        name = simple_input("Item Name")
+        if not name:
+            return
+        category = simple_input("Category (e.g., Shirt, Pants, Shoes)")
+        if not category:
+            return
+        img_path = filedialog.askopenfilename(title="Select Image", filetypes=[("Images", "*.png;*.jpg;*.jpeg")])
+        new_item = {"name": name, "category": category, "image": img_path}
+        self.wardrobe.append(new_item)
+        self.save_data()
+        self.refresh_list()
+
+    def delete_item(self):
+        sel = self.listbox.curselection()
+        if not sel:
+            messagebox.showinfo("Select Item", "Select an item to delete.")
+            return
+        index = sel[0]
+        del self.wardrobe[index]
+        self.save_data()
+        self.refresh_list()
+
+    def show_preview(self, event):
+        sel = self.listbox.curselection()
+        if not sel:
+            return
+        item = self.wardrobe[sel[0]]
+        if item["image"] and os.path.exists(item["image"]):
+            img = Image.open(item["image"]).resize((200, 200))
+            self.img_tk = ImageTk.PhotoImage(img)
+            self.preview_label.configure(image=self.img_tk, text="")
+        else:
+            self.preview_label.configure(text="🧥 No image available", image="")
+
+    def toggle_theme(self):
+        ctk.set_appearance_mode("dark" if ctk.get_appearance_mode() == "Light" else "light")
+
+    def save_data(self):
+        data = load_json(WARDROBE_FILE)
+        data[self.username] = self.wardrobe
+        save_json(WARDROBE_FILE, data)
+
+    def logout(self):
+        self.destroy()
+        LoginWindow().mainloop()
+
+# -----------------------------
+# Utility for simple inputs
+# -----------------------------
+def simple_input(prompt):
+    dialog = ctk.CTkInputDialog(title="Input", text=prompt)
+    return dialog.get_input()
+
+# -----------------------------
+# Start App
+# -----------------------------
+if __name__ == "__main__":
+    LoginWindow().mainloop()
+ 

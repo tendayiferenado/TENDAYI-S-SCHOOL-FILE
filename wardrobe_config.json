@@ -1,0 +1,10 @@
+{
+  "theme": {
+    "name": "dark",
+    "bg": "#222",
+    "fg": "#eee",
+    "accent": "#6ea8fe",
+    "button": "#333",
+    "entry": "#2b2b2b"
+  }
+}
