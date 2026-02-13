@@ -35,7 +35,7 @@ def registeraccount():
         
         user[username] = password
         with open("user.json","w") as file: # wrties towarsds the json file
-            json.dump(user,file)
+            json.dump(user,file) 
             messagebox.showinfo(title="LOGIN UPDATE", message="REGISTRATION WAS SUCCESSFULL")
 
     else:
@@ -75,7 +75,7 @@ def main_page (username):
     #-- user greetings
     recomedation_button =tkinter.Button(frame,text="fucntion in progress",bg="#757474",font=("Arial",30))
     wardrope_button =tkinter.Button(frame,text="view wardrope",bg="#757474",font=("Arial",30))
-    oufitbuilder_button =tkinter.Button(frame,text="build an outfit",bg="#757474",font=("Arial",30),command=lambd a: buildoutfit(main_window))
+    oufitbuilder_button =tkinter.Button(frame,text="build an outfit",bg="#757474",font=("Arial",30),command=lambda: buildoutfit(main_window))
     outfitplaner_button =tkinter.Button(frame,text="outfit planer / view plan",bg="#757474",font=("Arial",30))
     exitbutton =tkinter.Button(frame,text="close app",bg="#F60707",font=("Arial",30),command=closeprogram)
     #--- butons for the home page
@@ -92,26 +92,54 @@ def closeprogram():
         window.destroy()
     else:
         print(f"{username_input} has remained in the program.")
-def buildoutfit(mainwidnow):
-   
-    mainwidnow.withdraw()
+def buildoutfit(mainwindow):
+
+    mainwindow.withdraw()
+
     buildingpage = tkinter.Toplevel()
     buildingpage.title("outfit picker")
     buildingpage.geometry("420x840")
     buildingpage.configure(bg="#333333")
 
     frame = tkinter.Frame(buildingpage, bg="#333333")
-
-
-    outfitBuilderframe = tkinter.LabelFrame(frame,text= "user infromation ")
-    outfitBuilderframe.grid(row=0, column= 0 )
-    the_username_label = tkinter.Label(outfitBuilderframe,text="user text label ") 
-    the_username_label.grid(row= 0,  colmmn = 0 )
-
     frame.pack(fill="both", expand=True)
 
-    title = tkinter.Label(frame, text="Build Outfit", fg="white", bg="#333333", font=("Arial", 24))
-    title.pack(pady=20)
+    # title
+    title = tkinter.Label(
+        frame,
+        text="OUTFIT BUILDER",
+        fg="white",
+        bg="#636363",
+        font=("Arial", 24)
+    )
+    title.grid(row=0, column=0, pady=20)
+
+    # label frame
+    outfitBuilderframe = tkinter.LabelFrame(
+        frame,
+        text="User information",
+        bg="#6C6565",
+        fg="white"
+    )
+    outfitBuilderframe.grid(row=1, column=0, pady=15)
+
+    # username label
+    the_username_label = tkinter.Label(
+        outfitBuilderframe,
+        text="user text label",
+        bg="#333333",
+        fg="white"
+    )
+    the_username_label.grid(row=0, column=0)
+
+    user_text_label =tkinter.Entry(
+        outfitBuilderframe,
+        bg="#6C6556",
+        fg="white"
+    )
+    user_text_label.grid(row=0,column=1)
+
+    
 
     
     
