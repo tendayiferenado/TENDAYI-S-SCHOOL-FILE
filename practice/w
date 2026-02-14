@@ -139,6 +139,44 @@ def buildoutfit(mainwindow):
     )
     user_text_label.grid(row=0,column=1)
 
+    clothing_category_title = tkinter.Label(
+        outfitBuilderframe,
+        text="Outfit builder",
+        bg="#333333",
+        fg="white"
+    )
+    clothing_category_title.grid(row = 1 , column= 0)
+
+    clothing_category = tkinter.Spinbox(
+        outfitBuilderframe,
+        values = ("coat",
+                  "jacket","hoodie/jumper","t-shirt / shirt","trousers","jogger","shorts","shoes"),
+        bg="#6C6556",
+        fg="white",
+        width = 15
+    )
+    clothing_category.grid(row = 1, column= 1)
+
+    colour_values=[
+        "Beige","Black","Blue","Brown","Cream","Dark Grey","Dark Red",
+        "Green","Grey","Khaki","Light Blue","Light Grey","Maroon",      # holds all possible colours for the clothes but
+        "Navy","Olive","Orange","Pink","Purple","Red","Tan",            # cant be held in the button cause of some ts
+        "Teal","Turquoise","White","Yellow"
+    ]
+
+    clothing_colour_type = tkinter.Listbox(
+    outfitBuilderframe,
+    bg="#6C6556",
+    fg="white",
+    width=15,
+    state="readonly"
+    )
+
+    for x in colour_values:
+        clothing_colour_type.insert(tkinter.END,x)
+
+    clothing_colour_type.grid(row=2, column=1)     # currently wont load
+    
     
 
     
