@@ -3,7 +3,9 @@ import json
 import re
 import os
 from tkinter import messagebox
+from PIL import Image, ImageTk
 #-- liaberies
+
 
 def registeraccount():
     username = username_input.get()
@@ -103,7 +105,6 @@ def buildoutfit(mainwindow):
 
     frame = tkinter.Frame(buildingpage, bg="#333333")
     frame.pack(fill="both", expand=True)
-
     # title
     title = tkinter.Label(
         frame,
@@ -169,15 +170,65 @@ def buildoutfit(mainwindow):
     bg="#6C6556",
     fg="white",
     width=15,
-    state="readonly"
     )
 
     for x in colour_values:
         clothing_colour_type.insert(tkinter.END,x)
 
-    clothing_colour_type.grid(row=2, column=1)     # currently wont load
-    
-    
+    clothing_colour_type.grid(row=2, column=1)    
+
+    clothing_colour_type_title = tkinter.Label(
+       outfitBuilderframe,
+       text="main colour",
+       bg ="#333333",
+       fg= "white",
+       width=15
+    )
+    clothing_colour_type_title.grid(row=2, column= 0)
+
+    #-------------------------------------- image section so i dont confuse myself
+    def changeimage():
+     path = url_entry.get()
+
+     img = Image.open(path)
+     img = img.resize((150, 150))
+
+     img_tk = ImageTk.PhotoImage(img)
+
+     Image_icon.config(image=img_tk)
+     Image_icon.image = img_tk
+
+
+
+
+    default_image = Image.open("placeholder.PNG")
+    default_image.resize((1,1))
+    default_imageTK = ImageTk.PhotoImage(default_image)
+
+    urlbutton = tkinter.Button(
+        outfitBuilderframe,
+        text= "check image",
+        bg = "#333333",
+        fg="white",
+        command= changeimage
+    )
+    urlbutton.grid(row=5,column=0)
+
+    Image_icon = tkinter.Label( 
+        outfitBuilderframe,
+        image= default_imageTK,
+        bg = "white"
+    )
+    Image_icon.image = default_imageTK    # my refences 
+    Image_icon.grid(row = 4, column= 1)
+
+    url_entry = tkinter.Entry(
+        outfitBuilderframe,
+        bg="#333333",
+        fg = "white",
+    )
+    url_entry.grid(row= 4, column= 0  )
+
 
     
     
