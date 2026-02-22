@@ -5,8 +5,27 @@ import os
 from tkinter import messagebox
 from PIL import Image, ImageTk
 #-- liaberies
+class clothingitem:
+   clothing_ID:int
+   clothing_Name:str
+   clothing_colour:str
+   colthing_cateagory:str
+   time_clothes_working:int = 0
+   clothing_url:str = ""
+   isclean:bool = True
+   def isitclean (slef,islcean):
+      if islcean == True:
+        return False
+      elif islcean == True:
+         return True
+      else:
+         print("error has been found")
+   def howmanytimesworn(slef,times_clothing_worn):
+      times_clothing_worn = times_clothing_worn + 1
 
-
+      
+         
+#-- class
 def registeraccount():
     username = username_input.get()
     password = password_input.get()  # --- these to grab the impformation from the functions
@@ -57,12 +76,12 @@ def loginAccount():
             if username in user:
                 if user[username] == password: # checks if the username connected to the password matchess
                  messagebox.showinfo(title="LOGIN UPDATE", message="log in was a correct!") # user feedback
-                 main_page(username)  
+                 main_page(username,window)  
     else:
         Warning ("Either file is missing or is not readable")
 
-def main_page (username):
-    window.withdraw()
+def main_page (username,windowtype):
+    windowtype.withdraw()
     main_window = tkinter.Toplevel()
 
 
@@ -118,7 +137,8 @@ def buildoutfit(mainwindow):
     # label frame
     outfitBuilderframe = tkinter.LabelFrame(
         frame,
-        text="User information",
+        text="clothing profile" \
+        "",
         bg="#6C6565",
         fg="white"
     )
@@ -127,7 +147,7 @@ def buildoutfit(mainwindow):
     # username label
     the_username_label = tkinter.Label(
         outfitBuilderframe,
-        text="user text label",
+        text="clothes name",
         bg="#333333",
         fg="white"
     )
@@ -227,7 +247,31 @@ def buildoutfit(mainwindow):
         bg="#333333",
         fg = "white",
     )
-    url_entry.grid(row= 4, column= 0  )
+    url_entry.grid(row= 4,column= 0)
+
+    clothing_intialastion = tkinter.Button(
+        outfitBuilderframe,
+        text="save clothing item",
+        bg="#000000",
+        fg = "white"
+        #need to create as serious big boy function
+    )
+    clothing_intialastion.grid(row=5, column=1)
+    
+    def saveitme():
+     item_name = user_text_label.get() 
+     item_catergory = clothing_category.get()
+     item_colour = clothing_colour_type.get()
+     item_pic_ID = url_entry.get()
+
+    homepage = tkinter.Button(
+        frame,
+        text="hompe page",
+        bg= "#F20202",
+        fg = "black",
+        command=lambda:main_page("back",buildingpage)
+    )
+    homepage.grid(row = 2,column=0,columnspan=2,sticky="nesw")
 
 
     
