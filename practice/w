@@ -5,23 +5,15 @@ import os
 from tkinter import messagebox
 from PIL import Image, ImageTk
 #-- liaberies
-class clothingitem:
-   clothing_ID:int
-   clothing_Name:str
-   clothing_colour:str
-   colthing_cateagory:str
-   time_clothes_working:int = 0
-   clothing_url:str = ""
-   isclean:bool = True
-   def isitclean (slef,islcean):
-      if islcean == True:
-        return False
-      elif islcean == True:
-         return True
-      else:
-         print("error has been found")
-   def howmanytimesworn(slef,times_clothing_worn):
-      times_clothing_worn = times_clothing_worn + 1
+class ClothingItem:
+    def __init__(self, clothing_id: int, name: str, colour: str, category: str, url: str, isclean: bool = True, times_worn: int = 0):
+        self.clothing_id = clothing_id
+        self.name = name
+        self.colour = colour
+        self.category = category
+        self.url = url
+        self.isclean = isclean
+        self.times_worn = times_worn
 
       
          
@@ -222,7 +214,7 @@ def buildoutfit(mainwindow):
 
 
     default_image = Image.open("placeholder.PNG")
-    default_image.resize((1,1))
+    default_image.resize((150,150))
     default_imageTK = ImageTk.PhotoImage(default_image)
 
     urlbutton = tkinter.Button(
@@ -261,8 +253,20 @@ def buildoutfit(mainwindow):
     def saveitme():
      item_name = user_text_label.get() 
      item_catergory = clothing_category.get()
-     item_colour = clothing_colour_type.get()
+     item_colour = clothing_colour_type.get(clothing_colour_type.curselection())
      item_pic_ID = url_entry.get()
+     selected = clothing_colour_type.curselection()
+     if not selected:
+        messagebox.showinfo(
+           title = "missing imformation",
+           message = "please selcet a colour please"
+        )
+     elif item_pic_ID =="":
+        messagebox.showinfo(
+           title= "missing url ",
+           message="you have a missing interview"
+     elif
+        )
 
     homepage = tkinter.Button(
         frame,
