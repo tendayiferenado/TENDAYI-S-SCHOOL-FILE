@@ -15,7 +15,28 @@ class ClothingItem:
         self.isclean = isclean
         self.times_worn = times_worn
 
-      
+    def display(self):
+       print("clothing item")
+       print(f"ID:{self.clothing_id}")
+       print(f"Name:{self.name}")
+       print(f"colour:{self.colour}")
+       print(f"category:{self.category}")
+       print(f"imageID:{self.url}")
+       print(f"is clean?:{self.isclean}")
+       print(f"times worn?:{self.times_worn}")
+    
+    def makejson(self):
+       return{
+          "clothing_ID":self.clothing_id,
+          "name":self.name,
+          "colour":self.colour,
+          "category":self.category,
+          "imageurl":self.url,
+          "isclean":self.isclean,
+          "times_worn":self.times_worn
+       }
+
+
          
 #-- class
 def registeraccount():
@@ -46,8 +67,11 @@ def registeraccount():
          messagebox.showinfo(title="password error", message="this username already exist. \npleaes try another name")
          return
         
-        user[username] = password
-        with open("user.json","w") as file: # wrties towarsds the json file
+        user[username] ={   #just the username where all of the imforamtion is found
+           "password":password,# where the password is stored
+           "clothes":[]         #this creates a table where items in the wardrope can be passed while being connected to the user
+        }
+        with open("user.json","w") as file: # writes towards the json file
             json.dump(user,file) 
             messagebox.showinfo(title="LOGIN UPDATE", message="REGISTRATION WAS SUCCESSFULL")
 
@@ -66,7 +90,7 @@ def loginAccount():
         with open(PATH,"r") as file:
             user = json.load(file)
             if username in user:
-                if user[username] == password: # checks if the username connected to the password matchess
+                if user[username]["password"] == password: # checks if the username connected to the password matchess
                  messagebox.showinfo(title="LOGIN UPDATE", message="log in was a correct!") # user feedback
                  main_page(username,window)  
     else:
@@ -87,8 +111,8 @@ def main_page (username,windowtype):
     welcomeMessageLabel.pack(pady = 20)
     #-- user greetings
     recomedation_button =tkinter.Button(frame,text="fucntion in progress",bg="#757474",font=("Arial",30))
-    wardrope_button =tkinter.Button(frame,text="view wardrope",bg="#757474",font=("Arial",30))
-    oufitbuilder_button =tkinter.Button(frame,text="build an outfit",bg="#757474",font=("Arial",30),command=lambda: buildoutfit(main_window))
+    wardrope_button =tkinter.Button(frame,text="view wardrope",bg="#757474",font=("Arial",30),command=lambda:viewwardrope(main_window,username))
+    oufitbuilder_button =tkinter.Button(frame,text="build an outfit",bg="#757474",font=("Arial",30),command=lambda: buildoutfit(main_window,username))
     outfitplaner_button =tkinter.Button(frame,text="outfit planer / view plan",bg="#757474",font=("Arial",30))
     exitbutton =tkinter.Button(frame,text="close app",bg="#F60707",font=("Arial",30),command=closeprogram)
     #--- butons for the home page
@@ -105,7 +129,7 @@ def closeprogram():
         window.destroy()
     else:
         print(f"{username_input} has remained in the program.")
-def buildoutfit(mainwindow):
+def buildoutfit(mainwindow,username):
 
     mainwindow.withdraw()
 
@@ -240,33 +264,76 @@ def buildoutfit(mainwindow):
         fg = "white",
     )
     url_entry.grid(row= 4,column= 0)
-
-    clothing_intialastion = tkinter.Button(
-        outfitBuilderframe,
-        text="save clothing item",
-        bg="#000000",
-        fg = "white"
-        #need to create as serious big boy function
-    )
-    clothing_intialastion.grid(row=5, column=1)
-    
-    def saveitme():
+    def saveitem():
      item_name = user_text_label.get() 
      item_catergory = clothing_category.get()
-     item_colour = clothing_colour_type.get(clothing_colour_type.curselection())
+     item_colour = clothing_colour_type.get(clothing_colour_type.curselection()[0])
      item_pic_ID = url_entry.get()
      selected = clothing_colour_type.curselection()
+     vaild_cotent = True
+     
      if not selected:
+        vaild_cotent = False
         messagebox.showinfo(
            title = "missing imformation",
            message = "please selcet a colour please"
         )
      elif item_pic_ID =="":
+        vaild_cotent = False
         messagebox.showinfo(
            title= "missing url ",
            message="you have a missing interview"
-     elif
         )
+     elif   item_catergory == False:
+        vaild_cotent = False
+        messagebox.showinfo(
+           title= "missing imformation",
+           message = "please pick an item caterogry"
+        )
+     elif item_name == "":
+         vaild_cotent = False
+         messagebox.showinfo(
+            title="missing imformation",
+            message="please place write an item name "
+        ) 
+     else:
+      pass
+     if vaild_cotent == True:
+       with open ("user.json","r") as file: # loads the user data in 
+          user_data = json.load(file)
+     item_id = len(user_data[username]["clothes"])+1 # makes each item have its own separate 
+     newitem = ClothingItem(
+           item_id,
+           item_name,
+           item_colour,
+           item_catergory,
+           item_pic_ID,
+           False,
+           0  
+        )
+     user_data[username]["clothes"].append(newitem.makejson())
+     
+     with open("user.json","w") as file:
+        json.dump(user_data,file,indent=4)
+     newitem.display()
+
+
+       
+
+    clothing_intialastion = tkinter.Button(
+        outfitBuilderframe,
+        text="save clothing item",
+        bg="#000000",                      # slove to missing argumnets 
+        fg = "white",
+        command=saveitem   
+    )
+    clothing_intialastion.grid(row=5, column=1)
+    
+    
+     
+ 
+         
+        
 
     homepage = tkinter.Button(
         frame,
@@ -276,6 +343,70 @@ def buildoutfit(mainwindow):
         command=lambda:main_page("back",buildingpage)
     )
     homepage.grid(row = 2,column=0,columnspan=2,sticky="nesw")
+
+def viewwardrope(mainwindow,username):
+   
+    mainwindow.withdraw()
+
+    veiwwardropepage = tkinter.Toplevel()
+    veiwwardropepage.title("outfit picker")
+    veiwwardropepage.geometry("420x840")
+    veiwwardropepage.configure(bg="#333333")
+
+    frame = tkinter.Frame(veiwwardropepage, bg="#333333")
+    frame.pack(fill="both", expand=True)
+    # title
+    title = tkinter.Label(      # page header
+        frame,
+        text="view your wardrope!",
+        fg="white",
+        bg="#636363",
+        font=("Arial", 24)
+    )
+    title.grid(row=0, column=0, pady=20)
+    
+    
+    veiwwardropeframe = tkinter.LabelFrame(    # for the wardrope tab
+        frame,
+        text="veiw your warope" \
+        "",
+        bg="#6C6565",
+        fg="white"    
+    )
+    veiwwardropeframe.grid(row=1, column=0, columnspan=3,  pady=15,padx=15)
+
+
+
+    selectcategory = tkinter.Button(     # when button is pressed the function will get imformation form the button 
+       veiwwardropeframe,
+       text="press to selcet catergory",
+       fg="white",
+       bg="#333333",
+       font=("Arial",12) 
+    )
+    selectcategory.grid(row=0,column=0,pady=15,padx=15)
+
+    clothingcatergory = tkinter.Spinbox( #spin box from where they choose
+        veiwwardropeframe,
+        values = ("coat",
+                  "jacket","hoodie/jumper","t-shirt / shirt","trousers","jogger","shorts","shoes"),   # all the categorys for the clothes 
+        bg="#6C6556",
+        fg="white",
+        width = 15
+    )
+    clothingcatergory.grid(row = 0 , column=1 , pady=15)
+
+    
+    
+    homepage = tkinter.Button(  # home page button to go back to the homepage 
+        veiwwardropeframe,
+        text="hompe page",
+        bg= "#F20202",
+        fg = "black",
+        command=lambda:main_page("back",veiwwardropepage)
+    )
+    homepage.grid(row = 2,column=0,columnspan=2,sticky="nesw")
+   
 
 
     

@@ -1,1 +1,34 @@
-{"tendayi": "hello123", "sir12345": "hello1234", "jayson": "123456", "shane1625": "oyboyboy"}
+{
+    "tendayi": {
+        "password": "hello123",
+        "clothes": [
+            {
+                "clothing_ID": 1,
+                "name": "black top",
+                "colour": "Black",
+                "category": "coat",
+                "imageurl": "C:/Users/selec/Downloads/download (2).jfif",
+                "isclean": false,
+                "times_worn": 0
+            },
+            {
+                "clothing_ID": 2,
+                "name": "black hoodie",
+                "colour": "Black",
+                "category": "hoodie/jumper",
+                "imageurl": "C:/Users/selec/Downloads/download (1).jfif",
+                "isclean": false,
+                "times_worn": 0
+            },
+            {
+                "clothing_ID": 3,
+                "name": "top",
+                "colour": "Black",
+                "category": "t-shirt / shirt",
+                "imageurl": "C:/Users/selec/Downloads/download (2).jfif",
+                "isclean": false,
+                "times_worn": 0
+            }
+        ]
+    }
+}
