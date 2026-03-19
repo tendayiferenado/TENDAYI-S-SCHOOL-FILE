@@ -28,6 +28,15 @@
                 "imageurl": "C:/Users/selec/Downloads/download (2).jfif",
                 "isclean": false,
                 "times_worn": 0
+            },
+            {
+                "clothing_ID": 4,
+                "name": "hoodie stussy",
+                "colour": "Black",
+                "category": "coat",
+                "imageurl": "C:/Users/selec/Downloads/download (1).jfif",
+                "isclean": false,
+                "times_worn": 0
             }
         ]
     }

@@ -332,8 +332,6 @@ def buildoutfit(mainwindow,username):
     
      
  
-         
-        
 
     homepage = tkinter.Button(
         frame,
@@ -342,7 +340,7 @@ def buildoutfit(mainwindow,username):
         fg = "black",
         command=lambda:main_page("back",buildingpage)
     )
-    homepage.grid(row = 2,column=0,columnspan=2,sticky="nesw")
+    homepage.grid(row = 3,column=0,columnspan=2,sticky="nesw")
 
 def viewwardrope(mainwindow,username):
    
@@ -373,7 +371,24 @@ def viewwardrope(mainwindow,username):
         bg="#6C6565",
         fg="white"    
     )
-    veiwwardropeframe.grid(row=1, column=0, columnspan=3,  pady=15,padx=15)
+    veiwwardropeframe.grid(row=1, column=0, columnspan=3,  pady=15)
+    def showitimesincatergry():
+       selectedcatergory = clothingcatergory.get()
+
+       itemlisting.delete(0,tkinter.END)
+
+       with open("user.json","r") as file:
+          user_data = json.load(file)
+       Clothes = user_data[username]["clothes"]
+       found_items = 0
+
+       for item in Clothes:
+          if item["category"] == selectedcatergory:
+             itemlisting.insert(tkinter.END,
+                                f"{item["clothing_ID"]} - {item["name"]}")
+             found_items =+ 1
+       if found_items == 0:
+          itemlisting.insert(tkinter.END,"No items found in this category")
 
 
 
@@ -382,7 +397,8 @@ def viewwardrope(mainwindow,username):
        text="press to selcet catergory",
        fg="white",
        bg="#333333",
-       font=("Arial",12) 
+       font=("Arial",12),
+       command=showitimesincatergry
     )
     selectcategory.grid(row=0,column=0,pady=15,padx=15)
 
@@ -396,7 +412,50 @@ def viewwardrope(mainwindow,username):
     )
     clothingcatergory.grid(row = 0 , column=1 , pady=15)
 
-    
+    itemlisting = tkinter.Listbox(
+       veiwwardropeframe,
+       width= 35,
+       height=12,
+       bg="#333333",
+       fg="white"
+    )
+
+    def showpreivew(event):
+       select = itemlisting.curselection()
+       if not select:
+          return 
+       
+       select_text = itemlisting.get(select[0])
+       item_id = int(select_text.split(" - ")[0])
+
+       with open ("user.json","r") as file:
+          user_data = json.load(file)
+       clothes = user_data[username]["clothes"]  # getting access to the json file 
+
+       for item in clothes:
+          
+          if item["clothing_ID"]  == item_id:
+             previewitenIDvalue.config(text=item["clothing_ID"])
+             previewitemnamevalue.config(text=item["name"])
+             previewitemcolourvalue.config(text=item["colour"])
+             previewiteniscleanvalue.config(text=item["isclean"])          # please fix this big bro
+             previewitetimeswornvalue.config(text=item["times_worn"])
+            
+             image_path = item["imageurl"]
+             img = Image.open(image_path)
+             img = img.resize((120,120))
+             img_tk = ImageTk.PhotoImage(img)
+
+             previewitemimagevalue.config(image=img_tk,text="")
+             previewitemimagevalue.image = img_tk
+
+          
+
+             break
+       
+
+    itemlisting.bind("<<ListboxSelect>>",showpreivew)
+    itemlisting.grid(row=1,column=0, columnspan=2,pady=10)
     
     homepage = tkinter.Button(  # home page button to go back to the homepage 
         veiwwardropeframe,
@@ -405,8 +464,115 @@ def viewwardrope(mainwindow,username):
         fg = "black",
         command=lambda:main_page("back",veiwwardropepage)
     )
-    homepage.grid(row = 2,column=0,columnspan=2,sticky="nesw")
+    homepage.grid(row = 4,column=0,columnspan=2,sticky="nesw")
+    #===================================================================================== below  is for the inner grid to previe
+    
+    clothingpreviewframe = tkinter.LabelFrame(
+       veiwwardropeframe,
+       width=35,
+       height=20,
+       bg="#333333",
+       fg ="white"
+    )
    
+    clothingpreviewframe.grid(row=3,column=0,columnspan=2,pady=10,sticky="nesw")
+
+
+    previewitenID = tkinter.Label(
+       clothingpreviewframe,
+       text="clothing ID:",
+       bg="#333333",
+       fg="white"
+    )
+    previewitenID.grid(row=0,column=0,pady=10,padx=5,sticky="nesw")
+
+    previewitemname= tkinter.Label(
+       clothingpreviewframe,
+       text="Name:",
+       bg="#333333",
+       fg="white"
+    )
+    previewitemname.grid(row=1,column=0,pady=10,padx=5,sticky="nesw")
+
+    previewitemcolour = tkinter.Label(
+       clothingpreviewframe,
+       text="colour:",
+       bg="#333333",
+       fg="white"
+    )
+    previewitemcolour.grid(row=2,column=0,pady=10,padx=5,sticky="nesw")
+
+    previewitenisclean = tkinter.Label(
+       clothingpreviewframe,
+       text="Is this clean?:",
+       bg="#333333",
+       fg="white"
+    )
+    previewitenisclean.grid(row=3,column=0,pady=10,padx=5,sticky="nesw")
+
+    previewitetimesworn = tkinter.Label(
+       clothingpreviewframe,
+       text="Times worn:",
+       bg="#333333",
+       fg="white"
+    )
+    previewitetimesworn.grid(row= 4, column= 0, pady=10,padx=5,sticky="nesw")
+
+    previewitemimage = tkinter.Label(
+       clothingpreviewframe,
+       text = "clothing image:",
+       bg ="#333333",
+       fg="white"
+    )
+    previewitemimage.grid(row=5,column=0,pady=10,padx=5,sticky="news")
+    # ---------------------------------------------------------------------------------------- inputed data is below 
+    previewitenIDvalue = tkinter.Label(
+       clothingpreviewframe,
+       text="",
+       bg="#333333",
+       fg="white"
+    )
+    previewitenIDvalue.grid(row=0,column=1,pady=10,padx=5,sticky="nesw")
+
+    previewitemnamevalue= tkinter.Label(
+       clothingpreviewframe,
+       text="",
+       bg="#333333",
+       fg="white"
+    )
+    previewitemnamevalue.grid(row=1,column=1,pady=10,padx=5,sticky="nesw")
+
+    previewitemcolourvalue = tkinter.Label(
+       clothingpreviewframe,
+       text="",
+       bg="#333333",
+       fg="white"
+    )
+    previewitemcolourvalue.grid(row=2,column=1,pady=10,padx=5,sticky="nesw")
+
+    previewiteniscleanvalue = tkinter.Label(
+       clothingpreviewframe,
+       text="",
+       bg="#333333",
+       fg="white"
+    )
+    previewiteniscleanvalue.grid(row=3,column=1,pady=10,padx=5,sticky="nesw")
+
+    previewitetimeswornvalue = tkinter.Label(
+       clothingpreviewframe,
+       text="",
+       bg="#333333",
+       fg="white"
+    )
+    previewitetimeswornvalue.grid(row= 4, column= 1, pady=10,padx=5,sticky="nesw")
+
+    previewitemimagevalue = tkinter.Label(
+       clothingpreviewframe,
+       text = "",
+       bg ="#333333",
+       fg="white"
+    )
+    previewitemimagevalue.grid(row=5,column=1,pady=10,padx=5,sticky="news")
 
 
     
