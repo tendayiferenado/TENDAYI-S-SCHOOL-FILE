@@ -4,6 +4,7 @@ import re
 import os
 from tkinter import messagebox
 from PIL import Image, ImageTk
+import requests
 #-- liaberies
 class ClothingItem:
     def __init__(self, clothing_id: int, name: str, colour: str, category: str, url: str, isclean: bool = True, times_worn: int = 0):
@@ -38,7 +39,7 @@ class ClothingItem:
 
 
          
-#-- class
+#-- class  
 def registeraccount():
     username = username_input.get()
     password = password_input.get()  # --- these to grab the impformation from the functions
@@ -96,32 +97,145 @@ def loginAccount():
     else:
         Warning ("Either file is missing or is not readable")
 
-def main_page (username,windowtype):
+def get_weather_temp():
+    url = "https://api.open-meteo.com/v1/forecast?latitude=51.5&longitude=-0.12&current_weather=true"
+    try:
+        response = requests.get(url)
+        data = response.json()
+        return data["current_weather"]["temperature"]
+    except:
+        return None
+
+def temp_to_categories(temp):
+    if temp is None:
+        return []
+    elif temp <= 5:
+        return ["coat", "hoodie/jumper"]
+    elif temp <= 12:
+        return ["jacket", "hoodie/jumper", "trousers"]
+    elif temp <= 18:
+        return ["hoodie/jumper", "trousers", "jogger"]
+    elif temp <= 24:
+        return ["t-shirt / shirt", "trousers"]
+    else:
+        return ["t-shirt / shirt", "shorts"]
+
+def recommend_clothes(username, top_n=5):
+    with open("user.json", "r") as file:
+        user_data = json.load(file)
+    clothes = user_data[username]["clothes"]
+    temp = get_weather_temp()
+    suitable_categories = temp_to_categories(temp)
+    scored = []
+    for item in clothes:
+        if not item["isclean"]:
+            continue
+        score = 0
+        times_worn = item["times_worn"]
+        score += max(0, 10 - times_worn)
+        if suitable_categories and item["category"] in suitable_categories:
+            score += 15
+        scored.append((item, score, temp))
+    scored.sort(key=lambda x: x[1], reverse=True)
+    return scored[:top_n], temp
+
+
+
+def main_page(username, windowtype):
     windowtype.withdraw()
     main_window = tkinter.Toplevel()
 
-
-    frame = tkinter.Frame(main_window,bg="#333333") #jb made me move ts og line somthing good luck futur ten 
-    main_window.title("HOME")
+    frame = tkinter.Frame(main_window, bg="#333333")
     main_window.geometry("420x840")
     main_window.configure(bg="#333333")
-    #-- creates home page and backround colour 
+
+    # UNCHANGED — welcome message
     welcomeMessage = f"welcome, {username}"
-    welcomeMessageLabel = tkinter.Label(main_window, text = welcomeMessage,fg= "white", bg = "#7C7C7C",font=("Arial",16),pady=15)
-    welcomeMessageLabel.pack(pady = 20)
-    #-- user greetings
-    recomedation_button =tkinter.Button(frame,text="fucntion in progress",bg="#757474",font=("Arial",30))
-    wardrope_button =tkinter.Button(frame,text="view wardrope",bg="#757474",font=("Arial",30),command=lambda:viewwardrope(main_window,username))
-    oufitbuilder_button =tkinter.Button(frame,text="build an outfit",bg="#757474",font=("Arial",30),command=lambda: buildoutfit(main_window,username))
-    outfitplaner_button =tkinter.Button(frame,text="outfit planer / view plan",bg="#757474",font=("Arial",30))
-    exitbutton =tkinter.Button(frame,text="close app",bg="#F60707",font=("Arial",30),command=closeprogram)
-    #--- butons for the home page
+    welcomeMessageLabel = tkinter.Label(main_window, text=welcomeMessage, fg="white", bg="#7C7C7C", font=("Arial", 16), pady=15)
+    welcomeMessageLabel.pack(pady=20)
+
+    
+    # CHANGED — replaced the old "function in progress" button with a labelframe
+    # that holds the recommendation system
+    rec_frame = tkinter.LabelFrame(frame, text="today's recommendation", bg="#6C6565", fg="white", font=("Arial", 11))
+    rec_frame.grid(row=1, column=0, columnspan=2, pady=15, padx=10, sticky="nesw")
+
+    rec_label = tkinter.Label(rec_frame, text="press to get recommendation", fg="white", bg="#6C6565", font=("Arial", 13))
+    rec_label.grid(row=0, column=0, columnspan=2, pady=10, padx=10)
+
+    temp_label = tkinter.Label(rec_frame, text="", fg="white", bg="#6C6565", font=("Arial", 11))
+    temp_label.grid(row=1, column=0, columnspan=2)
+
+    # CHANGED — queue dictionary to track which recommendation we are on
+    queue = {"items": [], "index": 0}
+
+    def load_recommendations():
+        result, temp = recommend_clothes(username)
+        queue["items"] = [item for item, score, _ in result]
+        queue["index"] = 0
+        temp_text = f"{temp} degrees outside" if temp is not None else "weather not available"
+        temp_label.config(text=temp_text)
+        show_next()
+
+    # CHANGED — show_next displays the current item in the queue
+    def show_next():
+        if queue["index"] >= len(queue["items"]):
+            rec_label.config(text="no recommendations left")
+            # FIXED — was text="disabled" which just wrote the word on the button
+            # state="disabled" actually disables the button
+            yes_button.config(state="disabled")
+            no_button.config(state="disabled")
+            return
+        item = queue["items"][queue["index"]]
+        # FIXED — was using f"{item["name"]}" with double quotes inside double quotes
+        # which breaks the string, switched to single quotes inside
+        rec_label.config(text=f"{item['name']} - {item['category']} ({item['colour']})")
+        yes_button.config(state="normal")
+        no_button.config(state="normal")
+
+    # FIXED — wear_it was accidentally indented inside show_next
+    # moved it out to the same level so yes_button can actually reach it
+    def wear_it():
+        if queue["index"] >= len(queue["items"]):
+            return
+        item = queue["items"][queue["index"]]
+        with open("user.json", "r") as file:
+            user_data = json.load(file)
+        for c in user_data[username]["clothes"]:
+            if c["clothing_ID"] == item["clothing_ID"]:
+                c["times_worn"] += 1
+                break
+        with open("user.json", "w") as file:
+            json.dump(user_data, file, indent=4)
+        queue["index"] += 1
+        show_next()
+
+    def skip_it():
+        queue["index"] += 1
+        show_next()
+
+    get_rec_button = tkinter.Button(rec_frame, text="get recommendation", bg="#757474", fg="white", font=("Arial", 12), command=load_recommendations)
+    get_rec_button.grid(row=2, column=0, columnspan=2, pady=8, padx=10, sticky="nesw")
+
+    yes_button = tkinter.Button(rec_frame, text="yes, i'll wear this", bg="#00FF1A", fg="black", font=("Arial", 12), command=wear_it, state="disabled")
+    yes_button.grid(row=3, column=0, pady=8, padx=5, sticky="nesw")
+
+    no_button = tkinter.Button(rec_frame, text="no", bg="#FB0000", fg="black", font=("Arial", 12), command=skip_it, state="disabled")
+    no_button.grid(row=3, column=1, pady=8, padx=5, sticky="nesw")
+
+    # UNCHANGED — all original buttons kept exactly the same
+    wardrope_button = tkinter.Button(frame, text="view wardrope", bg="#757474", font=("Arial", 30), command=lambda: viewwardrope(main_window, username))
+    oufitbuilder_button = tkinter.Button(frame, text="build an outfit", bg="#757474", font=("Arial", 30), command=lambda: buildoutfit(main_window, username))
+    outfitplaner_button = tkinter.Button(frame, text="outfit planer / view plan", bg="#757474", font=("Arial", 30))
+    exitbutton = tkinter.Button(frame, text="close app", bg="#F60707", font=("Arial", 30), command=closeprogram)
+
     frame.pack()
-    recomedation_button.grid(row=0,column=0,columnspan=3,rowspan=2,pady=15)
-    wardrope_button.grid(row=3,column=0,columnspan=3,rowspan=2,pady=15)
-    oufitbuilder_button.grid(row=6,column=0,columnspan=3,rowspan=2,pady=15)
-    outfitplaner_button.grid(row=9,column=0,columnspan=3,rowspan=2,pady=15)
-    exitbutton.grid(row= 12, column= 0 ,columnspan= 3, rowspan=2,pady = 15  )
+    # REMOVED — recomedation_button.grid() was still here but the button no longer
+    # exists, this was crashing the program before anything could render
+    wardrope_button.grid(row=3, column=0, columnspan=3, rowspan=2, pady=15)
+    oufitbuilder_button.grid(row=6, column=0, columnspan=3, rowspan=2, pady=15)
+    outfitplaner_button.grid(row=9, column=0, columnspan=3, rowspan=2, pady=15)
+    exitbutton.grid(row=12, column=0, columnspan=3, rowspan=2, pady=15)
 def closeprogram():
     confirmation = messagebox.askokcancel(title="close app",message="are you sure you want to close this program?")
     confirmation
@@ -227,7 +341,7 @@ def buildoutfit(mainwindow,username):
      path = url_entry.get()
 
      img = Image.open(path)
-     img = img.resize((150, 150))
+     img = img.resize((150,150))
 
      img_tk = ImageTk.PhotoImage(img)
 
@@ -415,13 +529,13 @@ def viewwardrope(mainwindow,username):
     itemlisting = tkinter.Listbox(
        veiwwardropeframe,
        width= 35,
-       height=12,
+       height=8,
        bg="#333333",
        fg="white"
     )
 
     def showpreivew(event):
-       select = itemlisting.curselection()
+       select = itemlisting.curselection() #is a boolean value which is repsented if one the options are selected 
        if not select:
           return 
        
@@ -443,7 +557,7 @@ def viewwardrope(mainwindow,username):
             
              image_path = item["imageurl"]
              img = Image.open(image_path)
-             img = img.resize((120,120))
+             img = img.resize((80,80))
              img_tk = ImageTk.PhotoImage(img)
 
              previewitemimagevalue.config(image=img_tk,text="")
@@ -464,7 +578,7 @@ def viewwardrope(mainwindow,username):
         fg = "black",
         command=lambda:main_page("back",veiwwardropepage)
     )
-    homepage.grid(row = 4,column=0,columnspan=2,sticky="nesw")
+    homepage.grid(row = 6,column=0,columnspan=2,sticky="nesw")
     #===================================================================================== below  is for the inner grid to previe
     
     clothingpreviewframe = tkinter.LabelFrame(
@@ -525,6 +639,84 @@ def viewwardrope(mainwindow,username):
        fg="white"
     )
     previewitemimage.grid(row=5,column=0,pady=10,padx=5,sticky="news")
+
+    def incrementtimesworn():
+     selected = itemlisting.curselection()
+     if not selected:
+        messagebox.showinfo("Error", "Please select an item first")
+        return
+
+     selected_text = itemlisting.get(selected[0])
+     item_id = int(selected_text.split(" - ")[0])
+
+     with open("user.json", "r") as file:
+        user_data = json.load(file)
+
+     clothes = user_data[username]["clothes"]
+
+     for item in clothes:
+        if item["clothing_ID"] == item_id:
+            item["times_worn"] += 1
+
+            previewitetimeswornvalue.config(text=item["times_worn"]) # this refreshes this value therefore updating the data 
+            break
+
+     with open("user.json", "w") as file:
+        json.dump(user_data, file, indent=4)
+
+    Indicateitemworn = tkinter.Button(
+       veiwwardropeframe,
+       text = "I've worn this item",
+       bg="#D6D3D3",
+       fg="black",
+       command=incrementtimesworn
+    )
+    Indicateitemworn.grid(row=4,column=0,columnspan=2,padx=3,sticky="news")
+
+    def indcateifclothesworn():
+     selected = itemlisting.curselection()
+     if not selected:
+        messagebox.showinfo("Error", "please select an item first")
+        return
+
+     selected_text = itemlisting.get(selected[0])
+     item_id = int(selected_text.split(" - ")[0])
+
+     # load data
+     with open("user.json", "r") as file:
+        user_data = json.load(file)
+
+     clothes = user_data[username]["clothes"]
+
+     for item in clothes:
+        if item["clothing_ID"] == item_id:
+
+            # toggle clean/dirty
+            item["isclean"] = not item["isclean"]
+
+            # convert to Yes/No
+            status = "Yes" if item["isclean"] else "No"
+            colour = "green" if item["isclean"] else "red"
+
+            # update UI LIVE
+            previewiteniscleanvalue.config(text=status, fg=colour)
+
+            break
+
+     # save back to JSON
+     with open("user.json", "w") as file:
+        json.dump(user_data, file, indent=4) 
+
+
+
+    IndicateclothesWorn = tkinter.Button(
+       veiwwardropeframe,
+       text="This is now dirty",
+       bg = "#333333",
+       fg = "white",
+       command=indcateifclothesworn
+    )
+    IndicateclothesWorn.grid(row = 5,column=0,columnspan=2,padx=3,sticky="news")
     # ---------------------------------------------------------------------------------------- inputed data is below 
     previewitenIDvalue = tkinter.Label(
        clothingpreviewframe,

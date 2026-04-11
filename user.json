@@ -8,8 +8,8 @@
                 "colour": "Black",
                 "category": "coat",
                 "imageurl": "C:/Users/selec/Downloads/download (2).jfif",
-                "isclean": false,
-                "times_worn": 0
+                "isclean": true,
+                "times_worn": 5
             },
             {
                 "clothing_ID": 2,
@@ -36,7 +36,7 @@
                 "category": "coat",
                 "imageurl": "C:/Users/selec/Downloads/download (1).jfif",
                 "isclean": false,
-                "times_worn": 0
+                "times_worn": 3
             }
         ]
     }
